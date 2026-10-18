@@ -4,16 +4,69 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../firebase_options.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
 import 'storage_service.dart';
+
+final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+
+const AndroidNotificationChannel _defaultChannel = AndroidNotificationChannel(
+  'velix_default_channel',
+  'Velix Notifications',
+  description: 'Notifications for subscription renewals and alerts',
+  importance: Importance.max,
+  playSound: true,
+  enableVibration: true,
+);
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (kDebugMode) {
     print('Handling a background message: ${message.messageId}');
+  }
+
+  // If the message already has a notification payload, Android/iOS system natively shows it in the status bar
+  if (message.notification != null) {
+    return;
+  }
+
+  // If it is a data-only payload arriving in background, display it via local notifications
+  final title = message.data['title'] ?? 'Velix';
+  final body = message.data['body'] ?? message.data['message'] ?? '';
+
+  if (body.isNotEmpty || title.isNotEmpty) {
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosInit = DarwinInitializationSettings();
+    await _localNotifications.initialize(
+      const InitializationSettings(android: androidInit, iOS: iosInit),
+    );
+
+    const androidDetails = AndroidNotificationDetails(
+      'velix_default_channel',
+      'Velix Notifications',
+      channelDescription: 'Notifications for subscription renewals and alerts',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      notificationDetails,
+    );
   }
 }
 
@@ -37,13 +90,31 @@ class PushNotificationService extends GetxService {
         options: DefaultFirebaseOptions.currentPlatform,
       );
 
-      // 2. Set Background Message Handler
+      // 2. Setup Local Notification Channel for Android
+      const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const iosInit = DarwinInitializationSettings();
+      await _localNotifications.initialize(
+        const InitializationSettings(android: androidInit, iOS: iosInit),
+        onDidReceiveNotificationResponse: (response) {
+          try {
+            Get.toNamed('/notifications');
+          } catch (_) {}
+        },
+      );
+
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      if (androidPlugin != null) {
+        await androidPlugin.createNotificationChannel(_defaultChannel);
+      }
+
+      // 3. Set Background Message Handler
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-      // 3. Request Permissions for iOS and Android 13+
+      // 4. Request Permissions for iOS and Android 13+
       await _requestPermission();
 
-      // 4. Set Foreground Presentation Options for iOS
+      // 5. Set Foreground Presentation Options for iOS
       await _fcm.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
@@ -90,6 +161,13 @@ class PushNotificationService extends GetxService {
         provisional: false,
         sound: true,
       );
+
+      // Explicitly request notification permission for Android 13+ (API 33+)
+      final androidImplementation = _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      if (androidImplementation != null) {
+        await androidImplementation.requestNotificationsPermission();
+      }
 
       if (kDebugMode) {
         print('FCM Permission Status: ${settings.authorizationStatus}');
@@ -177,6 +255,7 @@ class PushNotificationService extends GetxService {
 
     if (body.isEmpty && (message.notification == null)) return;
 
+    // 1. Show In-App Top Snackbar
     Get.snackbar(
       title,
       body,
@@ -188,6 +267,28 @@ class PushNotificationService extends GetxService {
       borderRadius: 16,
       duration: const Duration(seconds: 4),
       onTap: (_) => _handleNotificationClick(message),
+    );
+
+    // 2. Also pop directly in phone's Notification Tray / Status Bar
+    _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _defaultChannel.id,
+          _defaultChannel.name,
+          channelDescription: _defaultChannel.description,
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
     );
   }
 
