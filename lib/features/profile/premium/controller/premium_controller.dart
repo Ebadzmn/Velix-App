@@ -29,8 +29,33 @@ class PremiumController extends GetxController {
   final String appleProductId = 'app.getvelix.monthly';
 
   // StoreKit Product Cache
-  ProductDetails? availableProduct;
+  final Rxn<ProductDetails> rxAvailableProduct = Rxn<ProductDetails>();
+  ProductDetails? get availableProduct => rxAvailableProduct.value;
+  set availableProduct(ProductDetails? val) => rxAvailableProduct.value = val;
   final RxBool isStoreAvailable = false.obs;
+
+  // Localized metadata getters for Apple Guideline 3.1.2(c) compliance
+  String get productTitle {
+    final title = rxAvailableProduct.value?.title;
+    if (title != null && title.trim().isNotEmpty) {
+      return title;
+    }
+    return 'Velix Premium Monthly';
+  }
+
+  String get productDescription {
+    final desc = rxAvailableProduct.value?.description;
+    if (desc != null && desc.trim().isNotEmpty) {
+      return desc;
+    }
+    return 'monthly_sub_desc'.tr;
+  }
+
+  String get localizedPrice => rxAvailableProduct.value?.price ?? displayPrice.value;
+  String get currencyCode => rxAvailableProduct.value?.currencyCode ?? 'SEK';
+  String get currencySymbol => rxAvailableProduct.value?.currencySymbol ?? 'kr';
+  String get subscriptionPeriod => '1 Month';
+  String get formattedDuration => '1 Month (Auto-Renewable)';
 
   // Feature List with localization keys
   final List<Map<String, dynamic>> features = [
@@ -142,12 +167,24 @@ class PremiumController extends GetxController {
       final Set<String> kIds = <String>{appleProductId};
       final ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(kIds);
 
-      if (response.notFoundIDs.isEmpty && response.productDetails.isNotEmpty) {
-        availableProduct = response.productDetails.first;
-        displayPrice.value = availableProduct!.price;
+      if (response.error != null) {
+        debugPrint('[PremiumController] StoreKit query error: ${response.error}');
+      }
+
+      if (response.productDetails.isNotEmpty) {
+        final product = response.productDetails.first;
+        rxAvailableProduct.value = product;
+        displayPrice.value = product.price;
+        debugPrint(
+          '[PremiumController] StoreKit product loaded: ${product.id}, price: ${product.price}, title: ${product.title}',
+        );
+      } else {
+        debugPrint(
+          '[PremiumController] StoreKit returned no product details for $kIds. NotFound: ${response.notFoundIDs}',
+        );
       }
     } catch (e) {
-      debugPrint('Error loading StoreKit product details: $e');
+      debugPrint('[PremiumController] Error loading StoreKit product details: $e');
     }
   }
 

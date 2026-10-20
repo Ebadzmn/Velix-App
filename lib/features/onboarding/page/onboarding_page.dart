@@ -32,17 +32,17 @@ class OnboardingPage extends GetView<OnboardingController> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF9482FF).withOpacity(0.4),
-                          blurRadius: 28,
+                          color: const Color(0xFF334BDB).withOpacity(0.35),
+                          blurRadius: 24,
                           spreadRadius: 4,
-                          offset: const Offset(0, 6),
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: Image.asset(
-                        'assets/applogo.png',
+                        'assets/image.png',
                         width: 72,
                         height: 72,
                         fit: BoxFit.cover,
@@ -93,7 +93,12 @@ class OnboardingPage extends GetView<OnboardingController> {
                     child: ElevatedButton(
                       onPressed: controller.goToCreateAccount,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          148,
+                          130,
+                          255,
+                        ),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -118,7 +123,10 @@ class OnboardingPage extends GetView<OnboardingController> {
                       onPressed: controller.goToLogin,
                       style: OutlinedButton.styleFrom(
                         backgroundColor: darkButtonColor,
-                        side: const BorderSide(color: darkBorderColor, width: 1),
+                        side: const BorderSide(
+                          color: darkBorderColor,
+                          width: 1,
+                        ),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),

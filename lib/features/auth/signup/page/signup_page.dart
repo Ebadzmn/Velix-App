@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/utils/app_constants.dart';
+import '../../../../core/utils/url_launcher_helper.dart';
 import '../controller/signup_controller.dart';
 
 class SignupPage extends GetView<SignupController> {
@@ -376,7 +378,8 @@ class SignupPage extends GetView<SignupController> {
                                     color: linkColor,
                                     fontWeight: FontWeight.bold,
                                   ),
-                                  recognizer: TapGestureRecognizer()..onTap = () {},
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => UrlLauncherHelper.launchWebUrl(AppConstants.termsOfUseUrl),
                                 ),
                                 const TextSpan(
                                   text: ' and ',
@@ -388,7 +391,8 @@ class SignupPage extends GetView<SignupController> {
                                     color: linkColor,
                                     fontWeight: FontWeight.bold,
                                   ),
-                                  recognizer: TapGestureRecognizer()..onTap = () {},
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => UrlLauncherHelper.launchWebUrl(AppConstants.privacyPolicyUrl),
                                 ),
                                 const TextSpan(
                                   text: '\n(required)',

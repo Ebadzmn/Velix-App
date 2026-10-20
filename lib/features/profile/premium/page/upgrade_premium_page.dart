@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/utils/app_constants.dart';
+import '../../../../core/utils/url_launcher_helper.dart';
 import '../controller/premium_controller.dart';
+import '../widgets/subscription_disclosures_card.dart';
+import '../widgets/subscription_product_card.dart';
 
 class UpgradePremiumPage extends GetView<PremiumController> {
   const UpgradePremiumPage({super.key});
@@ -174,144 +178,18 @@ class UpgradePremiumPage extends GetView<PremiumController> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Pricing Card (Monthly Subscription Only - 25 kr Price)
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: isDark
-                                  ? [
-                                      const Color(0xFF1E1C38),
-                                      const Color(0xFF161726),
-                                    ]
-                                  : [
-                                      const Color(0xFFFFFFFF),
-                                      const Color(0xFFF4F3FF),
-                                    ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: primaryColor.withOpacity(0.6),
-                              width: 1.8,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: primaryColor.withOpacity(isDark ? 0.22 : 0.12),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(22),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: primaryColor.withOpacity(0.18),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(Icons.bolt, color: primaryColor, size: 20),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'monthly_sub_title'.tr,
-                                            style: TextStyle(
-                                              color: textColor,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            'monthly_sub_desc'.tr,
-                                            style: TextStyle(
-                                              color: labelColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [Color(0xFF9482FF), Color(0xFF7A65FF)],
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      'popular_badge'.tr,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 18),
-                              Divider(color: borderColor, height: 1),
-                              const SizedBox(height: 18),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  Obx(() => Text(
-                                    controller.displayPrice.value,
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  )),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'per_month'.tr,
-                                    style: TextStyle(
-                                      color: labelColor,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(Icons.check_circle_outline, color: Color(0xFF00E676), size: 16),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Obx(() => Text(
-                                      'billed_monthly_note'.tr.replaceAll('25 kr', controller.displayPrice.value),
-                                      style: TextStyle(
-                                        color: isDark ? const Color(0xFF00E676) : const Color(0xFF059669),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    )),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+                        // Subscription Product Card (Apple Guideline 3.1.2(c) Compliant)
+                        Obx(() => SubscriptionProductCard(
+                          title: controller.productTitle,
+                          subtitle: controller.productDescription,
+                          price: controller.displayPrice.value,
+                          billingPeriod: '/ month',
+                          durationText: '1 Month (Auto-Renewable)',
+                          badgeText: 'popular_badge'.tr,
+                          renewalNote: 'billed_monthly_note'.tr.replaceAll('25 kr', controller.displayPrice.value),
+                          isSelected: true,
+                          onTap: () {},
+                        )),
                         const SizedBox(height: 28),
 
                         // Section Title: Everything included
@@ -558,78 +436,14 @@ class UpgradePremiumPage extends GetView<PremiumController> {
 
                         const SizedBox(height: 24),
 
-                        // Apple Mandatory Subscription Disclosures & Legal Links
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: cardColor.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: borderColor.withOpacity(0.6)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Subscription Information (Apple Terms)',
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Obx(() => Text(
-                                '• Title: Velix Premium Monthly (${controller.displayPrice.value} / month)\n'
-                                '• Length: 1 Month (Auto-Renewable)\n'
-                                '• Payment: Charged to your Apple ID account at confirmation of purchase.\n'
-                                '• Renewal: Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing cycle.\n'
-                                '• Cancellation: You can manage or cancel your subscription anytime via your Apple ID Account Settings.',
-                                style: TextStyle(
-                                  color: labelColor,
-                                  fontSize: 11,
-                                  height: 1.45,
-                                ),
-                              )),
-                              const SizedBox(height: 12),
-                              Divider(color: borderColor, height: 1),
-                              const SizedBox(height: 10),
-                              // Legal Links Row
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => _showTermsDialog(context, cardColor, textColor, labelColor, primaryColor),
-                                    child: const Text(
-                                      'Terms of Use (EULA)',
-                                      style: TextStyle(
-                                        color: primaryColor,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                                    child: Text('•', style: TextStyle(color: labelColor, fontSize: 12)),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () => _showPrivacyDialog(context, cardColor, textColor, labelColor, primaryColor),
-                                    child: const Text(
-                                      'Privacy Policy',
-                                      style: TextStyle(
-                                        color: primaryColor,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+                        // Apple Mandatory Subscription Disclosures & Legal Links (Guideline 3.1.2(c))
+                        Obx(() => SubscriptionDisclosuresCard(
+                          subscriptionTitle: controller.productTitle,
+                          subscriptionDuration: '1 Month (Auto-Renewable)',
+                          subscriptionPrice: controller.displayPrice.value,
+                          onTermsFallback: () => _showTermsDialog(context, cardColor, textColor, labelColor, primaryColor),
+                          onPrivacyFallback: () => _showPrivacyDialog(context, cardColor, textColor, labelColor, primaryColor),
+                        )),
 
                         const SizedBox(height: 100), // padding for bottom floating action button
                       ],
@@ -696,7 +510,7 @@ class UpgradePremiumPage extends GetView<PremiumController> {
                                 Text(
                                   isSubscribed
                                       ? 'active_plan_cta'.tr
-                                      : 'upgrade_now_cta'.tr,
+                                      : 'Subscribe Now · ${controller.displayPrice.value} / month',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -738,13 +552,17 @@ class UpgradePremiumPage extends GetView<PremiumController> {
               'Subscriptions automatically renew unless auto-renewal is turned off at least 24 hours prior to the end of the current billing cycle.\n\n'
               '4. Cancellation & Refunds\n'
               'You can manage or cancel your subscription at any time via your Apple ID Account Settings. Refunds are handled exclusively by Apple according to App Store policies.\n\n'
-              '5. Standard Apple EULA\n'
-              'This application is governed by Apple\'s Standard EULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+              '5. Standard Apple EULA (Terms of Use)\n'
+              'This application is governed by Apple\'s Standard EULA: ${AppConstants.termsOfUseUrl}',
               style: TextStyle(color: labelColor, fontSize: 13, height: 1.5),
             ),
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () => UrlLauncherHelper.launchWebUrl(AppConstants.termsOfUseUrl),
+            child: Text('Open in Browser', style: TextStyle(color: primaryColor, fontWeight: FontWeight.w600)),
+          ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text('Close', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
@@ -774,13 +592,19 @@ class UpgradePremiumPage extends GetView<PremiumController> {
               'Payment processing is handled directly by Apple Inc. We do not store or process your credit card or financial credentials.\n\n'
               '3. Data Protection\n'
               'We do not sell, rent, or trade your personal data with third parties. All communication between your device and our servers is encrypted using industry-standard TLS/SSL.\n\n'
-              '4. Contact Us\n'
+              '4. Policy URL\n'
+              '${AppConstants.privacyPolicyUrl}\n\n'
+              '5. Contact Us\n'
               'For any privacy concerns, reach out to our team via Settings > Contact Support.',
               style: TextStyle(color: labelColor, fontSize: 13, height: 1.5),
             ),
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () => UrlLauncherHelper.launchWebUrl(AppConstants.privacyPolicyUrl),
+            child: Text('Open in Browser', style: TextStyle(color: primaryColor, fontWeight: FontWeight.w600)),
+          ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text('Close', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),

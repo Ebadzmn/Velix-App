@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/utils/app_constants.dart';
+import '../../../core/utils/url_launcher_helper.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
@@ -32,6 +34,13 @@ class PrivacyPolicyPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Open in Browser',
+            icon: Icon(Icons.open_in_browser, color: textColor),
+            onPressed: () => UrlLauncherHelper.launchWebUrl(AppConstants.privacyPolicyUrl),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

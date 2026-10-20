@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/localization/localization_controller.dart';
+import '../../../../core/utils/app_constants.dart';
+import '../../../../core/utils/url_launcher_helper.dart';
 import '../../../../routes/app_routes.dart';
 import '../controller/settings_controller.dart';
 
@@ -65,6 +67,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: Icons.menu_book_outlined,
                     title: 'premium_terms'.tr,
                     subtitle: 'premium_terms_sub'.tr,
+                    onTap: () => Get.toNamed(Routes.upgradePremium),
                     primaryColor: primaryColor,
                     labelColor: labelColor,
                     textColor: textColor,
@@ -327,7 +330,7 @@ class SettingsPage extends GetView<SettingsController> {
                   _buildSettingRow(
                     icon: Icons.description_outlined,
                     title: 'terms_of_use'.tr,
-                    onTap: () => Get.toNamed(Routes.privacyPolicy),
+                    onTap: () => UrlLauncherHelper.launchWebUrl(AppConstants.termsOfUseUrl),
                     primaryColor: primaryColor,
                     labelColor: labelColor,
                     textColor: textColor,
